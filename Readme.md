@@ -21,12 +21,8 @@ Ensure you have node 12 or higher.
 
 ## Usage
 
-### Optional Environment Variables
-Please refer to the `config/default.json` file for default values
-```
-HOST=127.0.0.1
-PORT=3000
-```
+### App Configuration Variables
+Please refer to the `config/default.json` file for default values.
 
 ### API Call
 

@@ -23,8 +23,8 @@ const specs = swaggerJsdoc(options);
 // setting up path with swagger js docs for swagger ui 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
-const host = config.app.host || process.env.HOST || '127.0.0.1'
-const port = config.app.port || process.env.PORT || 3000
+const host = config.app.host || '127.0.0.1'
+const port = config.app.port || 3000
 
 app.listen(port, host, () => {
     console.log(`Device adapter running at ${host}:${port}`)
