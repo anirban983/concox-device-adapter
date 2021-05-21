@@ -26,7 +26,7 @@ Please refer to the `config/default.json` file for default values.
 
 ### API Call
 
-Visit the following URL to see the api endpoint docs.
+Visit the following URL after running the project to see the api endpoint docs.
 
 ```
 http://127.0.0.1:3000/api-docs
