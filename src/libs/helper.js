@@ -1,33 +1,41 @@
+"use-strict";
+
+// file containing all the helper methods that can be re-used across the whole project
+
+// arrow function to insert space every nth position in string
 const insertSpaceEveryNPos = (str, n) => {
     let pos = n
-    let count = 0;
     const iter = (str.length/2)-1
     for (let i=0; i<iter; i++) {
-        count++;
         str = str.substring(0, pos) + ' ' + str.substr(pos)
         pos += n+1
     }
     return str
 }
 
+// arrow function to convert hexadecimal into binary 
 const hexToBinary = (hex) => {
     return ('00000000' + (parseInt(hex, 16)).toString(2)).substr(-8)
 }
 
+// arrow function to convert binary into decimal 
 const binaryToDecimal = (binary) => {
     return parseInt(binary, 2)
 }
 
+// arrow function to convert decimal into binary 
 const decimalToBinary = (decimal) => {
     return (decimal).toString(2)
 }
 
+// arrow function to convert binary into hexadecimal 
 const binaryToHex = (binary) => {
     return parseInt(binary, 2).toString(16)
 }
 
+// arrow function to convert hexadecimal into decimal 
 const hexToDecimal = (hex) => {
-    var i, j, digits = [0], carry;
+    let i, j, digits = [0], carry;
     for (i = 0; i < hex.length; i += 1) {
         carry = parseInt(hex.charAt(i), 16);
         for (j = 0; j < digits.length; j += 1) {
@@ -43,11 +51,13 @@ const hexToDecimal = (hex) => {
     return digits.reverse().join('');
 }
 
+// arrow function to convert hexadecimal into decimal
 const decimalToHex = (decimal) => {
     const binary = decimalToBinary(decimal)
     return binaryToHex(binary)
 }
 
+// arrow function for visual respresentation for hexadecimal (AA -> 0XAA) 
 const getHexBytes = (msg) => {
     let hexBytes = ''
     i = 0
@@ -59,8 +69,10 @@ const getHexBytes = (msg) => {
     return hexBytes
 }
 
+// arrow function to get 16-bit CRC of data
 const crc16 = (buf) => {
 
+    // CRC-ITU lookup table
     const crcTable = 
     [
         0X0000, 0X1189, 0X2312, 0X329B, 0X4624, 0X57AD, 0X6536, 0X74BF, 0X8C48, 0X9DC1, 0XAF5A, 

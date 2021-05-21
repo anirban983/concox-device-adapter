@@ -1,9 +1,14 @@
+"use-strict";
+
 const { hearbeatPacketFormat, heartbeatPacketResponseFormat } = require('../protocol-formats')
 const { insertSpaceEveryNPos, decimalToHex, hexToDecimal, crc16, getHexBytes, hexToBinary } = require('../helper')
 
+// function to decode to heartbeat packet
 const decodeHeartbeatPacket = (msg) => {
     let i = 0;
     let decoded = {};
+
+    // separating values for each bits from the whole packet
     Object.keys(hearbeatPacketFormat).forEach((key) => {
         decoded[key] = {}
         const increment = i + 2*(hearbeatPacketFormat[key].length)
@@ -11,38 +16,41 @@ const decodeHeartbeatPacket = (msg) => {
         i = increment
     })
 
+    // decoding each bit one-by-one  
     decoded['Start Bit']['description'] = getHexBytes(decoded['Start Bit']['value'])
 
     decoded['Packet Length']['description'] = hexToDecimal(decoded['Packet Length']['value'])
     
     decoded['Protocol Number']['description'] = getHexBytes(decoded['Protocol Number']['value'])
 
-    const informationContent = decoded['Information Content']
-    informationContent['Terminal Information Content'] = {
-        'value':  informationContent['value'].substring(0, 
+    const infoContent = decoded['Information Content']
+    const infoContentVal = infoContent['value']
+
+    infoContent['Terminal Information Content'] = {
+        'value':  infoContentVal.substring(0, 
             hearbeatPacketFormat['Information Content']['Terminal Information Content'].length*2),
-        'description': decodeTerminalInformationClient(informationContent['value'].substring(0, 
+        'description': decodeTerminalInformationClient(infoContentVal.substring(0, 
             hearbeatPacketFormat['Information Content']['Terminal Information Content'].length*2))
     }
 
-    informationContent['Voltage Level'] = {
-        'value':  informationContent['value'].substring(2, 
+    infoContent['Voltage Level'] = {
+        'value':  infoContentVal.substring(2, 
             2 + hearbeatPacketFormat['Information Content']['Voltage Level'].length*2),
-        'description': decodeVoltageLevel(informationContent['value'].substring(2, 
+        'description': decodeVoltageLevel(infoContentVal.substring(2, 
             2 + hearbeatPacketFormat['Information Content']['Voltage Level'].length*2)) + 'v'
     }
 
-    informationContent['GSM Signal Strength'] = {
-        'value':  informationContent['value'].substring(6, 
+    infoContent['GSM Signal Strength'] = {
+        'value':  infoContentVal.substring(6, 
             6 + hearbeatPacketFormat['Information Content']['GSM Signal Strength'].length*2),
-        'description': decodeGsmSignalStrength(informationContent['value'].substring(6, 
+        'description': decodeGsmSignalStrength(infoContentVal.substring(6, 
             6 + hearbeatPacketFormat['Information Content']['GSM Signal Strength'].length*2))
     }
 
-    informationContent['Language/Extended Port Status'] = {
-        'value':  informationContent['value'].substring(8, 
+    infoContent['Language/Extended Port Status'] = {
+        'value':  infoContentVal.substring(8, 
             8 + hearbeatPacketFormat['Information Content']['Language/Extended Port Status'].length*2),
-        'description': decodeLanguage(informationContent['value'].substring(8, 
+        'description': decodeLanguage(infoContentVal.substring(8, 
             8 + hearbeatPacketFormat['Information Content']['Language/Extended Port Status'].length*2))
     }
 
@@ -56,38 +64,47 @@ const decodeHeartbeatPacket = (msg) => {
     return decoded
 }
 
+// function to encode hearbeat packet response from decoded request packet
 const encodeHeartbeatPacketResp = (decoded) => {
     let encoded = ''
 
+    // getting same start bit from decoded
     const startBit = decoded['Start Bit']['value']
     encoded += startBit
 
+    // calculating packet length
     const packetLen = heartbeatPacketResponseFormat['Protocol Number'].length + heartbeatPacketResponseFormat['Serial Number'].length
         + heartbeatPacketResponseFormat['Error Check'].length
+    
+    // converting from decimal to hexadecimal
     let hexPacketLen = decimalToHex(packetLen).toString()
     if (hexPacketLen.length === 1) {
         hexPacketLen = '0'+hexPacketLen
     }
     encoded += hexPacketLen
 
+    // same value as in request packet for protocol number
     const protocolNum = decoded['Protocol Number']['value']
     encoded += protocolNum
 
     const srNum = '0100'
     encoded += srNum
 
+    // calculating error code using crc16
     let errorCode = crc16(encoded.substr(4))
     if (errorCode.length < 4 ) {
         errorCode = '0'.repeat(4-errorCode.length) + errorCode
     }
     encoded += errorCode
 
+    // fixed for stop bit & same as request packet
     const stopBit = decoded['Stop Bit']['value'];
     encoded += stopBit
 
     return insertSpaceEveryNPos(encoded, 2)
 }
 
+// functioin to decode terminal information client
 const decodeTerminalInformationClient = (hex) => {
     let informationArr = []
     const binary = hexToBinary(hex)
@@ -126,11 +143,13 @@ const decodeTerminalInformationClient = (hex) => {
     return informationArr.join(', ')
 }
 
+// function to decode voltage level
 const decodeVoltageLevel = (hex) => {
     const decimal = hexToDecimal(hex)
     return parseInt(decimal)/100
 }
 
+// function to decode gsm signal sterength
 const decodeGsmSignalStrength = (hex) => {
     if (hex === '00') return 'no signal'
     else if (hex === '01') return 'extremely weak signal'
@@ -139,6 +158,7 @@ const decodeGsmSignalStrength = (hex) => {
     else if (hex === '04') return 'strong signal'
 }
 
+// function to decode language
 const decodeLanguage = (hex) => {
     if (hex.substring(2,4) === '01') return  'Chinese'
     else if (hex.substring(2,4) === '02') return  'English'

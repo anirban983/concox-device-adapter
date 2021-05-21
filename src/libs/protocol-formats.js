@@ -1,3 +1,6 @@
+"use-strict";
+
+// contains protocol information like names and length for each packet format according to the document
 const protocols = {
     loginPacketFormat: {
         'Start Bit': {
